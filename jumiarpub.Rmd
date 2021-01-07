@@ -1,0 +1,114 @@
+---
+title: "How to scrape JUMIA.com using R programming"
+author: "Henrys kasereka"
+date: "January 7 2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Introduction
+
+Jumia is an online marketplace for electronics and fashion, among others, targeting several African countries, but headquartered and incorporated in Germany. The company is also a logistics service, which enables the shipment and delivery of packages from sellers to consumers, and a payment service, which facilitates transactions between active participants and the platform of Jumia in selected markets. It has established partnerships with more than 50,000 local African businesses.
+
+```{r }
+library(tidyverse)
+library(rvest)
+library(stringi)
+library(stringr)
+library(dplyr)
+
+#Jumia websites
+url_jumia <- 'https://group.jumia.com/'
+url_jumia_site <- url_jumia %>% read_html() %>% html_nodes('.n2mu-single-client > a') %>% html_attr('href')
+url_jumia_site[1] <- url_jumia
+url_jumia_site
+```
+Liste of jumia website in Africa. 
+```{r }
+url_jumia_site
+```
+# Web scraping
+
+Web scraping, also known as data mining, is the process of collecting large amounts of data from the web and then placing it in databases for future analysis and later use.
+
+The algorithm we will provide can scrape all data on Jumia.
+
+Check if jumia website allow us to be scrape
+
+```{r }
+library(robotstxt)
+paths_allowed("https://group.jumia.com/")
+```
+
+# Let's go
+Specify the url of the category to scrape
+```{r }
+#urlbas <- "https://www.jumia.co.ke/smartphones/"
+#urlbas <- 'https://www.jumia.co.ke/laptops/'
+urlbas <- "https://www.jumia.com.ng/smartphones/"
+```
+
+## Get the number of dataset to scrape
+```{r }
+products_found <- urlbas %>% read_html() %>% html_nodes(".-fs14.-gy5.-phs") %>% html_text()
+products_found
+```
+## Split products found
+```{r }
+products_found_number <- str_split_fixed(products_found, " ", 2)
+products_found_number[1]
+```
+## Generate pagination link
+```{r }
+products_by_page <- 48
+page_number <- round(as.numeric(products_found_number[1]) / products_by_page)
+page_number
+```
+## Get the all links
+```{r }
+list_of_pages <- str_c(urlbas,'?page=', 1:page_number ,'#catalog-listing')
+head(list_of_pages, n = 10)
+```
+## Create an empty table to store results
+```{r }
+result_table <- tibble()
+```
+## Start scraping
+```{r}
+for(page in list_of_pages){
+  page_source <- read_html(page)
+  title <- html_nodes(page_source,'.name') %>% html_text()
+  price <- html_nodes(page_source,'.prc') %>% html_text()
+  temp_table <- tibble(title = title, price = price)
+  result_table <- bind_rows(result_table, temp_table)
+}
+```
+## Remove empty values
+```{r }
+result_table <- result_table %>% filter(price != '')
+head(result_table, n = 10)
+```
+## Export data
+```{r }
+currentTime <- Sys.time()
+csvFileName <- paste("resultatdata", currentTime,".csv", sep = ",")
+write.csv(result_table, file = csvFileName, fileEncoding = "UTF-16LE")
+```
+# Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
+
+# License
+MIT License: Copyright (c) 2021 HK Corporation Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# Email
+arisjokov@gmail.com
