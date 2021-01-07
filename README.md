@@ -12,9 +12,9 @@ Liste of jumia website in Africa.
 
 # How to use it
 
- Specifying the url eg : url_base <- 'https://www.jumia.com.ng/smartphones/'
+ Specifying the url eg : urlbas <- 'https://www.jumia.com.ng/smartphones/'
  You can change the url name according to what you want to scrape
- In case you want to scrape televisions data you will write url_base <- 'https://www.jumia.com.ng/televisions/'
+ In case you want to scrape televisions data you will write urlbas <- 'https://www.jumia.com.ng/televisions/'
  But you must get the url from jumia
  
  # Contributors
